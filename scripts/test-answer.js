@@ -8,24 +8,21 @@
       process.exit(2);
     }
 
-    const tests = [
-      {
-        input: 'What are the types of flowers?',
-        tools_choosen: ['science']
-      },
-      {
-        input: 'sqrt of 16',
-        tools_choosen: ['math_tool']
-      }
-    ];
+    const event = {
+      httpMethod: 'POST',
+      body: JSON.stringify({
+        input: 'Hi',
+        tools_choosen: ['science'],
+        conversation_history: [
+          { sender: 'user', text: 'Hi' },
+          { sender: 'assistant', text: "Hello! I'm your AI assistant. How can I help you today?" }
+        ]
+      })
+    };
 
-    for (const t of tests) {
-      const event = { httpMethod: 'POST', body: JSON.stringify({ input: t.input, tools_choosen: t.tools_choosen, conversation_history: [] }) };
-      const res = await mod.handler(event, {});
-      console.log('\n--- Test:', t.input);
-      console.log('handler response status:', res.statusCode);
-      try { console.log('body:', JSON.parse(res.body)); } catch (e) { console.log('body (raw):', res.body); }
-    }
+    const res = await mod.handler(event, {});
+    console.log('handler response status:', res.statusCode);
+    try { console.log('body:', JSON.parse(res.body)); } catch (e) { console.log('body (raw):', res.body); }
   } catch (err) {
     console.error('test script error:', err);
     process.exit(1);

@@ -56,7 +56,7 @@ Decide which tool to use. If none needed, say "none". Otherwise, choose one from
 
     if (candidateTools.length === 0 || candidateTools[0] === 'none') {
       finalAnswer = await callLLM(`${contextString}
-Provide a concise helpful answer to: "${input}"`);
+Respond casually to: "${input}"`);
     } else {
       let toolResult = '';
       // try each tool in candidateTools in order until one succeeds
@@ -199,28 +199,11 @@ async function localFallbackLLM(prompt, opts = {}) {
   // - Otherwise, return a concise friendly reply or extract tool output
   try {
     const lower = prompt.toLowerCase();
-
-    // If this is the decider prompt (asked to choose a tool), use simple
-    // heuristics to pick an appropriate tool instead of always returning
-    // 'none'. This enables math queries to be routed to `math_tool` when
-    // no external LLM is configured.
     if (lower.includes('decide which tool to use') || lower.includes('respond with exactly one word') || lower.includes('available tools')) {
-      // Extract the user question from the decider prompt
-      const m = prompt.match(/Given the user question:\s*"([\s\S]*?)"/i);
-      const question = m ? (m[1] || '').trim().toLowerCase() : '';
-      // Math heuristics: sqrt, square root, derivative, integral, calculate, numbers/operators
-      if (/\b(sqrt|square root|derivative|integral|calculate|what is|what's)\b/.test(question) || /[0-9]+\s*[-+*/^]\s*[0-9]+/.test(question)) {
-        return 'math_tool';
-      }
-      // News / recent content
-      if (/\b(news|recent|latest|headlines|today)\b/.test(question)) {
-        return 'news_tool';
-      }
-      // Default: no specialized tool required
       return 'none';
     }
 
-    // Basic math detection for direct prompts (non-decider): handle sqrt and square root queries
+    // Basic math detection: handle sqrt and square root queries by calling mathTool
     const sqrtMatch = prompt.match(/sqrt(?:\s+of)?\s*[:\"]?\s*([0-9\.\-eE]+)/i) || prompt.match(/square root of\s*[:\"]?\s*([0-9\.\-eE]+)/i);
     if (sqrtMatch) {
       const num = sqrtMatch[1];
@@ -233,7 +216,7 @@ async function localFallbackLLM(prompt, opts = {}) {
       }
     }
 
-    // If asked to 'Respond casually to: "..."' provide a short friendly reply
+    // If asked to 'Respond casually to: "..."' return a natural casual reply
     const casualMatch = prompt.match(/Respond casually to:\s*"([\s\S]*?)"/i);
     if (casualMatch) {
       const userText = casualMatch[1].trim();
@@ -241,33 +224,8 @@ async function localFallbackLLM(prompt, opts = {}) {
       if (/^(hello|hi|hey|hi there|hello there)\b/.test(g)) {
         return "Hello! I'm your AI assistant. How can I help you today?";
       }
-      return `I can't access an external model right now, but here's a friendly reply: ${userText}`;
-    }
-
-    // If asked to 'Provide a concise helpful answer to: "..."' try some simple heuristics
-    const conciseMatch = prompt.match(/Provide a concise helpful answer to:\s*"([\s\S]*?)"/i);
-    if (conciseMatch) {
-      const q = conciseMatch[1].trim();
-      // Types-of pattern (e.g., "types of flowers")
-      const typesMatch = q.match(/types of ([\w\s]+)/i) || q.match(/what are the types of ([\w\s\?]+)/i);
-      if (typesMatch) {
-        const topic = typesMatch[1].toLowerCase();
-        if (topic.includes('flower')) {
-          let out = 'Common types of flowers: Annuals (e.g., marigolds, zinnias), Perennials (e.g., peonies, daylilies), Biennials (e.g., foxglove), Bulb flowers (e.g., tulips, daffodils), Shrubs (e.g., hydrangea), Trees (e.g., magnolia), and Wildflowers (e.g., poppies).';
-          if (opts.includeFallbackLinks) {
-            out += '\n\nTry one of these free browser-hosted GPT-OSS chats for more detail:';
-            GPT_OSS_FALLBACK_CHATS.forEach(c => { out += `\n- ${c.name}: ${c.url}`; });
-          }
-          return out;
-        }
-      }
-      // Fallback concise answer when no heuristic applies
-      let out = `I don't have external model access right now. Here's a concise suggestion: ${q}`;
-      if (opts.includeFallbackLinks) {
-        out += '\n\nTry one of these free browser-hosted GPT-OSS chats:';
-        GPT_OSS_FALLBACK_CHATS.forEach(c => { out += `\n- ${c.name}: ${c.url}`; });
-      }
-      return out;
+      // Default casual reply: return the user's question or statement plainly (no added prefix).
+      return userText;
     }
 
     // If prompt includes a tool output / refine request, try to extract the tool output and return it as final answer
