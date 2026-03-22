@@ -1,23 +1,38 @@
 // Test file for the flow in answer.js
-
-async function callLLM(prompt) {
-  const res = await fetch('https://text.pollinations.ai/', {
+temp_messages = [{
+  role: 'assistant',
+  content: 'You are a helpful assitant !!'
+}]
+async function callLLM(prompt, is_refine=false) {
+  const token = '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';
+  if(!is_refine) 
+    temp_messages.push({
+          role: 'user',
+          content: prompt
+        }
+    )
+    const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+    },
     body: JSON.stringify({
-      messages: [{ role: 'user', content: prompt }]
-    })
+      model: 'meta-llama/llama-3-8b-instruct',
+      messages: temp_messages,
+      // temperature: 0.7,
+      // max_tokens: 1000,
+    }),
   });
+
+  // Optional safety check
   if (!res.ok) {
-    throw new Error(`LLM API error: ${res.status} ${res.statusText}`);
+    const errText = await res.text();
+    throw new Error(`OpenRouter error ${res.status}: ${errText}`);
   }
-  const response = await res.text();
-  try {
-    const json = JSON.parse(response);
-    return json.text || json.response || json.content || response;
-  } catch {
-    return response;
-  }
+
+  const data = await res.json();
+  return data.choices[0].message.content; 
 }
 
 async function mathTool(query) {
@@ -100,16 +115,10 @@ async function testFlow() {
     'What is the chemical definition of h2o'
   ];
 
-  for (const question of questions) {
-    console.log(`Question: "${question}"`);
-    try {
-      const result = await processQuestion(question, tools);
-      console.log(`Tool used: ${result.tool_used}`);
-      console.log(`Answer: ${result.answer}`);
-    } catch (err) {
-      console.error('Error:', err.message);
-    }
-    console.log('---\n');
+  for (let q = 0; q < questions.length; q++){
+    console.log("Question: " + questions[q])
+    let answer = await callLLM(questions[q])
+    console.log('Answer: ' + answer)
   }
 }
 

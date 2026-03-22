@@ -20,7 +20,7 @@ export default function App() {
     },
   ]);
   const [inputValue, setInputValue] = useState('');
-  const [selectedSections, setSelectedSections] = useState<string[]>(['math_tool', 'news_tool', 'chemistry_tool']);
+  const [selectedSections, setSelectedSections] = useState<string[]>(['math_tool', 'news_tool']);
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSendMessage = async (e: React.FormEvent) => {
@@ -40,11 +40,15 @@ export default function App() {
     setIsLoading(true);
 
     try {
-      const backendUrl = import.meta.env.VITE_BACKEND_URL || '/.netlify/functions';
+      const backendUrl = '/.netlify/functions';
+      const conversationMessages = [...messages, userMessage].map(m => ({
+        role: m.sender === 'user' ? 'user' : 'assistant',
+        content: m.text
+      }));
       const response = await fetch(`${backendUrl}/answer`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ input: currentInput, tools_choosen: selectedSections }),
+        body: JSON.stringify({ messages: conversationMessages, tools_choosen: selectedSections }),
       });
       const data = await response.json();
       setIsLoading(false);

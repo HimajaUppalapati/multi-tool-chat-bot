@@ -7,8 +7,8 @@ interface SidebarProps {
 
 const sections = [
   { id: 'math_tool', label: 'Math Tool' },
-  { id: 'news_tool', label: 'News Tool' },
-  { id: 'chemistry_tool', label: 'Chemistry Tool' },
+  { id: 'internet_search', label: 'Internet Search' },
+  { id: 'reddit_tool', label: 'Reddit Tool' },
 ];
 
 export function Sidebar({ selectedSections, onSectionsChange }: SidebarProps) {
