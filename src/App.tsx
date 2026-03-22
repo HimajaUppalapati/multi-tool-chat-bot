@@ -20,18 +20,7 @@ export default function App() {
     },
   ]);
   const [inputValue, setInputValue] = useState('');
-  const [selectedSections, setSelectedSections] = useState<string[]>([
-    'math_tool',
-    'physics_tool',
-    'chemistry_tool',
-    'biology_tool',
-    'news_tool',
-    'web_search_tool',
-    'medical_info_tool',
-    'coding_tool',
-    'pdf_tool',
-    'word_tool',
-  ]);
+  const [selectedSections, setSelectedSections] = useState<string[]>(['math_tool', 'news_tool', 'chemistry_tool']);
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSendMessage = async (e: React.FormEvent) => {
@@ -55,14 +44,7 @@ export default function App() {
       const response = await fetch(`${backendUrl}/answer`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          input: currentInput,
-          tools_choosen: selectedSections,
-          conversation_history: messages.map((msg) => ({
-            sender: msg.sender,
-            text: msg.text,
-          })),
-        }),
+        body: JSON.stringify({ input: currentInput, tools_choosen: selectedSections }),
       });
       const data = await response.json();
       setIsLoading(false);

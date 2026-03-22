@@ -5,14 +5,10 @@ interface SidebarProps {
   onSectionsChange: (sections: string[]) => void;
 }
 
-// Sidebar shows high-level domains. Each domain maps to multiple tools in the backend.
 const sections = [
-  { id: 'chat_ai', label: 'AI Chat (GPT, EaseMate, TalkAI)' },
-  { id: 'image_generation', label: 'Image Generation' },
-  { id: 'documents', label: 'Documents (PDF / Word / Convert)' },
-  { id: 'search_news', label: 'Search & News' },
-  { id: 'science', label: 'Science Tools (Math / Physics / Chemistry / Biology)' },
-  { id: 'medical_info_tool', label: 'Medical Info' },
+  { id: 'math_tool', label: 'Math Tool' },
+  { id: 'news_tool', label: 'News Tool' },
+  { id: 'chemistry_tool', label: 'Chemistry Tool' },
 ];
 
 export function Sidebar({ selectedSections, onSectionsChange }: SidebarProps) {
