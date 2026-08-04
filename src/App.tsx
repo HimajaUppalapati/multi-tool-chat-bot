@@ -41,7 +41,8 @@ export default function App() {
 
     try {
       // const backendUrl = 'http://localhost:4000';
-      const backendUrl = import.meta.env.VITE_BACKEND_URL;
+      // const backendUrl = import.meta.env.VITE_BACKEND_URL;
+      const backendUrl = import.meta.env.VITE_BACKEND_URL || '/.netlify/functions';
       const conversationMessages = [...messages, userMessage].map(m => ({
         role: m.sender === 'user' ? 'user' : 'assistant',
         content: m.text
